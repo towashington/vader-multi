@@ -10,6 +10,7 @@ pip uninstall vaderSentiment
 pip install vader-multi
 ```
 
+## Polarity Scores
 ### `class vaderSentiment.SentimentIntensityAnalyzer`
 #### `polarity_scores(text)`
 Returns a dictionary with the following keys: `{'neg': float, 'neu': float, 'pos': float, 'compound': float}`
@@ -45,6 +46,6 @@ analyzer.polarity_scores("VADER is smart, handsome, and funny.")
 >>> analyzer.polarity_scores("ベイダーは非常にスマートで、ハンサムで面白いです!!!")
 {'neg': 0.0, 'neu': 0.328, 'pos': 0.672, 'compound': 0.882}
 
->>> analyzer.polarity_scores("வேடர் மிகவும் ஸ்மார்ட், அழகான மற்றும் வேடிக்கையானது !!!")
+>>> analyzer.polarity_scores("வேடர் மிகவும் ஸ்மார்ட், அழகான மற்றும் வேடிக்கையானது!!!")
 {'neg': 0.0, 'neu': 0.314, 'pos': 0.686, 'compound': 0.8989}
 ```
