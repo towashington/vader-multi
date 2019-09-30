@@ -20,6 +20,7 @@ import json
 from itertools import product
 from inspect import getsourcefile
 from io import open
+from translatte import Translator
 
 # ##Constants##
 
@@ -236,6 +237,8 @@ class SentimentIntensityAnalyzer(object):
         Positive values are positive valence, negative value are negative
         valence.
         """
+        text = Translator.translate(text, 'en')
+
         # convert emojis to their textual descriptions
         text_no_emoji = ""
         prev_space = True
