@@ -10,7 +10,7 @@ Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for
 Sentiment Analysis of Social Media Text. Eighth International Conference on
 Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
 """
-import os
+import os, sys
 import re
 import math
 import string
@@ -20,7 +20,10 @@ import json
 from itertools import product
 from inspect import getsourcefile
 from io import open
-from translatte import Translator
+
+sys.path.append('../..')
+
+from translatte.translatte.translatte import Translator
 
 # ##Constants##
 
@@ -231,13 +234,19 @@ class SentimentIntensityAnalyzer(object):
             emoji_dict[emoji] = description
         return emoji_dict
 
-    def polarity_scores(self, text):
+    def polarity_scores(self, text, engine):
         """
         Return a float for sentiment strength based on the input text.
         Positive values are positive valence, negative value are negative
         valence.
         """
-        text = Translator.translate(text, 'en')
+        assert engine in ['Amazon', 'Google', 'NA']
+        if engine=='Google':
+            text = Translator.translate_google(text, 'en')
+        elif engine=='Amazon':
+            text = Translator.translate_amazon(text, 'en')
+        else:
+            text = text
 
         # convert emojis to their textual descriptions
         text_no_emoji = ""
@@ -287,7 +296,7 @@ class SentimentIntensityAnalyzer(object):
             valence = self.lexicon[item_lowercase]
                 
             # check for "no" as negation for an adjacent lexicon item vs "no" as its own stand-alone lexicon item
-            if item_lowercase == "no" and words_and_emoticons[i + 1].lower() in self.lexicon:
+            if item_lowercase == "no" and i + 1 < len(words_and_emoticons) and words_and_emoticons[i + 1].lower() in self.lexicon:
                 # don't use valence of "no" as a lexicon item. Instead set it's valence to 0.0 and negate the next item
                 valence = 0.0
             if (i > 0 and words_and_emoticons[i - 1].lower() == "no") \
@@ -541,6 +550,7 @@ if __name__ == '__main__':
                  "Catch utf-8 emoji such as 💘 and 💋 and 😁",  # emojis handled
                  "Not bad at all"  # Capitalized negation
                  ]
+    engine = 'Google'
 
     analyzer = SentimentIntensityAnalyzer()
 
@@ -558,7 +568,7 @@ if __name__ == '__main__':
     print("  -- sentiment laden slang words (e.g., 'sux')")
     print("  -- sentiment laden initialisms and acronyms (for example: 'lol') \n")
     for sentence in sentences:
-        vs = analyzer.polarity_scores(sentence)
+        vs = analyzer.polarity_scores(sentence, engine)
         print("{:-<65} {}".format(sentence, str(vs)))
     print("----------------------------------------------------")
     print(" - About the scoring: ")
@@ -592,7 +602,7 @@ if __name__ == '__main__':
     print("  -- special case idioms - e.g., 'never good' vs 'never this good', or 'bad' vs 'bad ass'.")
     print("  -- special uses of 'least' as negation versus comparison \n")
     for sentence in tricky_sentences:
-        vs = analyzer.polarity_scores(sentence)
+        vs = analyzer.polarity_scores(sentence, engine)
         print("{:-<69} {}".format(sentence, str(vs)))
     print("----------------------------------------------------")
 
@@ -612,7 +622,7 @@ if __name__ == '__main__':
     sentence_list = tokenize.sent_tokenize(paragraph)
     paragraphSentiments = 0.0
     for sentence in sentence_list:
-        vs = analyzer.polarity_scores(sentence)
+        vs = analyzer.polarity_scores(sentence, engine)
         print("{:-<69} {}".format(sentence, str(vs["compound"])))
         paragraphSentiments += vs["compound"]
     print("AVERAGE SENTIMENT FOR PARAGRAPH: \t" + str(round(paragraphSentiments / len(sentence_list), 4)))
@@ -625,7 +635,7 @@ if __name__ == '__main__':
     conceptList = ["balloons", "cake", "candles", "happy birthday", "friends", "laughing", "smiling", "party"]
     conceptSentiments = 0.0
     for concept in conceptList:
-        vs = analyzer.polarity_scores(concept)
+        vs = analyzer.polarity_scores(concept, engine)
         print("{:-<15} {}".format(concept, str(vs['compound'])))
         conceptSentiments += vs["compound"]
     print("AVERAGE SENTIMENT OF TAGS/LABELS: \t" + str(round(conceptSentiments / len(conceptList), 4)))
@@ -633,7 +643,7 @@ if __name__ == '__main__':
     conceptList = ["riot", "fire", "fight", "blood", "mob", "war", "police", "tear gas"]
     conceptSentiments = 0.0
     for concept in conceptList:
-        vs = analyzer.polarity_scores(concept)
+        vs = analyzer.polarity_scores(concept, engine)
         print("{:-<15} {}".format(concept, str(vs['compound'])))
         conceptSentiments += vs["compound"]
     print("AVERAGE SENTIMENT OF TAGS/LABELS: \t" + str(round(conceptSentiments / len(conceptList), 4)))
@@ -682,7 +692,7 @@ if __name__ == '__main__':
                 response_json = json.loads(response.text)
                 translation = response_json["responseData"]["translatedText"]
                 translator_name = "MemoryNet Translation Service"
-            vs = analyzer.polarity_scores(translation)
+            vs = analyzer.polarity_scores(translation, engine='NA')
             print("- {: <8}: {: <69}\t {} ({})".format(languages[nonEnglish_sentences.index(sentence)], sentence,
                                                        str(vs['compound']), translator_name))
         print("----------------------------------------------------")
